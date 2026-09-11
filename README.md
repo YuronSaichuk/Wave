@@ -69,3 +69,66 @@
 по одному годиннику. Це знімає найважчу проблему проекту — реалтайм-DSP
 із жорстким таймінгом — і залишає її на потім, коли (і якщо) захочеш
 живий режим.
+
+---
+
+## Швидкий старт (M0 — Каркас)
+
+### 1. Передумови (Windows)
+- **Python 3.11+**
+- **.NET 9 SDK**
+- **ffmpeg** (потрібен для `librosa` при роботі з MP3):
+  ```powershell
+  winget install Gyan.FFmpeg
+  ```
+- **rubberband-cli** (для тайм-стретчингу в M3):
+  ```powershell
+  winget install BreakfastQuay.RubberBand
+  ```
+
+### 2. База даних (PostgreSQL)
+Підключення здійснюється напряму до локальної служби PostgreSQL (без Docker):
+- Переконайтеся, що на вашому сервері PostgreSQL створено базу даних (наприклад, `wave`) та встановлено розширення `vector` (`CREATE EXTENSION IF NOT EXISTS vector;`).
+- Створіть файл `src/wave-core/.env` (за зразком `.env.example`) та вкажіть ваш connection string:
+  ```env
+  WAVE_DB=postgresql://postgres:your_password@localhost:5432/wave
+  ```
+- Для `Wave.Api` вкажіть рядок підключення у `src/Wave.Api/appsettings.Development.json`:
+  ```json
+  "ConnectionStrings": {
+    "WaveDb": "Host=localhost;Port=5432;Database=wave;Username=postgres;Password=your_password"
+  }
+  ```
+*(За бажанням `docker-compose.yml` залишається доступним як альтернативний варіант для запуску в ізольованому контейнері).*
+
+### 3. Налаштування wave-core (Python)
+Перейдіть у папку ядра та налаштуйте віртуальне середовище:
+```powershell
+cd src/wave-core
+python -m venv .venv
+.\.venv\Scripts\activate
+pip install -e ".[dev]"
+
+# Запуск міграцій схеми БД
+wave migrate
+
+# Перевірка підключення та таблиць
+wave db-check
+
+# Запуск API сервера wave-core (порт 8100)
+uvicorn wave_core.api:app --port 8100 --reload
+```
+
+### 4. Запуск Wave.Api (.NET)
+В окремому терміналі з кореня проекту:
+```powershell
+dotnet run --project src/Wave.Api --urls http://localhost:5020
+```
+
+### 5. Перевірка працездатності (Health Check)
+Зверніться до ендпоінту Wave.Api, який опитує wave-core та повертає зведений стан:
+```powershell
+curl http://localhost:5020/health
+# Відповідь: {"api":"ok","core":"ok","core_db":"ok","timestamp":"..."}
+```
+
