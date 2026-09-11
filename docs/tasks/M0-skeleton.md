@@ -10,9 +10,9 @@
 
 ## T0.1 — Git і структура папок
 
-- [ ] `git init` у `Wave/`
-- [ ] створити дерево з [01-architecture.md](../01-architecture.md#лейаут-репозиторію)
-- [ ] `.gitignore`:
+- [x] `git init` у `Wave/`
+- [x] створити дерево з [01-architecture.md](../01-architecture.md#лейаут-репозиторію)
+- [x] `.gitignore`:
 
 ```gitignore
 data/
@@ -43,28 +43,28 @@ dist/
 .vscode/
 ```
 
-- [ ] `data/library/.gitkeep`, `data/cache/.gitkeep`, `data/mixes/.gitkeep`
-- [ ] перший коміт
+- [x] `data/library/.gitkeep`, `data/cache/.gitkeep`, `data/mixes/.gitkeep`
+- [x] перший коміт
 
 ---
 
-## T0.2 — PostgreSQL + pgvector у докері
+## T0.2 — PostgreSQL + pgvector (Docker Compose)
 
-- [ ] `docker-compose.yml` із сервісом `db` (образ `pgvector/pgvector:pg16`)
-- [ ] `docker compose up -d db`
-- [ ] перевірити: `docker compose exec db psql -U postgres -d wave -c "SELECT 1"`
+- [x] налаштовано підтримку `.env` для `wave-core` та `appsettings.Development.json` для `Wave.Api` (порт 5435)
+- [x] створено `.env.example` та `.env` зі зразком конфігурації підключення
+- [x] `docker-compose.yml` запущено: контейнер `wave-db` (`pgvector/pgvector:pg16`) на зовнішньому порту `5435`
+- [x] підключення та pgvector перевірено через `wave db-check`
 
-**Пастка:** на Windows том `pgdata` треба named volume, а не bind mount
-у папку проекту — інакше права доступу зламають ініціалізацію кластера.
+**Примітка:** зовнішній порт призначено як `5435:5432`, оскільки 5432 і 5434 зайняті локальними службами Windows.
 
 ---
 
 ## T0.3 — Схема БД
 
-- [ ] `src/wave-core/migrations/001_init.sql` — увесь DDL із
+- [x] `src/wave-core/migrations/001_init.sql` — увесь DDL із
       [01-architecture.md](../01-architecture.md#схема-бд)
-- [ ] додати `CREATE EXTENSION IF NOT EXISTS vector;` першим рядком
-- [ ] додати таблицю для нормалізації:
+- [x] додати `CREATE EXTENSION IF NOT EXISTS vector;` першим рядком
+- [x] додати таблицю для нормалізації:
 
 ```sql
 CREATE TABLE feature_stats (
@@ -75,7 +75,7 @@ CREATE TABLE feature_stats (
 );
 ```
 
-- [ ] додати таблицю джобів:
+- [x] додати таблицю джобів:
 
 ```sql
 CREATE TABLE jobs (
@@ -91,10 +91,10 @@ CREATE TABLE jobs (
 CREATE INDEX ON jobs (status, created_at);
 ```
 
-- [ ] інструмент міграцій: `alembic` або простий раннер, що виконує
+- [x] інструмент міграцій: `alembic` або простий раннер, що виконує
       `.sql` файли по порядку і пише в `schema_migrations`. Для пет-проекту
       другий варіант чесніший — менше магії
-- [ ] перевірити: `\dt` показує всі таблиці
+- [x] перевірити: таблиці створено та підтверджено через `wave db-check`
 
 **Рішення, яке варто зафіксувати:** схему створює і володіє нею
 Python-частина. .NET читає ту саму базу через Dapper або EF з
@@ -105,8 +105,8 @@ Python-частина. .NET читає ту саму базу через Dapper 
 
 ## T0.4 — Каркас wave-core (Python)
 
-- [ ] Python 3.11+, `python -m venv .venv`
-- [ ] `pyproject.toml`:
+- [x] Python 3.11+, `python -m venv .venv`
+- [x] `pyproject.toml`:
 
 ```toml
 [project]
@@ -137,14 +137,14 @@ dev = ["pytest", "matplotlib", "ruff"]
 wave = "wave_core.cli:app"
 ```
 
-- [ ] `pip install -e ".[dev]"`
-- [ ] пакети-заглушки: `analysis/`, `similarity/`, `mixing/`,
+- [x] `pip install -e ".[dev]"`
+- [x] пакети-заглушки: `analysis/`, `similarity/`, `mixing/`,
       `lighting/`, `storage/`
-- [ ] `config.py` через `pydantic-settings`: `WAVE_DB`, `WAVE_LIBRARY`,
+- [x] `config.py` через `pydantic-settings`: `WAVE_DB`, `WAVE_LIBRARY`,
       `WAVE_CACHE`, `WAVE_MIXES`
-- [ ] `cli.py` на `typer` з командою `version`
-- [ ] `storage/db.py` — пул з'єднань psycopg3, реєстрація pgvector
-- [ ] перевірити: `wave version` і `wave db-check` (селект з `tracks`)
+- [x] `cli.py` на `typer` з командою `version`
+- [x] `storage/db.py` — пул з'єднань psycopg3, реєстрація pgvector
+- [x] перевірити: `wave version` і `wave db-check` (селект з `tracks`)
 
 **Пастка з librosa на Windows:** їй потрібен `ffmpeg` або `audioread`
 для MP3. Постав ffmpeg і додай у PATH — інакше отримаєш
@@ -154,26 +154,26 @@ wave = "wave_core.cli:app"
 
 ## T0.5 — Каркас Wave.Api (.NET)
 
-- [ ] `dotnet new sln -n Wave`
-- [ ] `dotnet new webapi -n Wave.Api -o src/Wave.Api`
-- [ ] `dotnet new classlib -n Wave.Lighting -o src/Wave.Lighting`
-- [ ] `dotnet new classlib -n Wave.Domain -o src/Wave.Domain`
-- [ ] додати проекти в sln, посилання Api → Lighting, Api → Domain
-- [ ] `/health` → 200
-- [ ] `appsettings.Development.json`: рядок підключення до БД,
+- [x] `dotnet new sln -n Wave`
+- [x] `dotnet new webapi -n Wave.Api -o src/Wave.Api`
+- [x] `dotnet new classlib -n Wave.Lighting -o src/Wave.Lighting`
+- [x] `dotnet new classlib -n Wave.Domain -o src/Wave.Domain`
+- [x] додати проекти в sln, посилання Api → Lighting, Api → Domain
+- [x] `/health` → 200
+- [x] `appsettings.Development.json`: рядок підключення до БД,
       базовий URL wave-core (`http://localhost:8100`)
-- [ ] `HttpClient` до wave-core через `IHttpClientFactory`, з
+- [x] `HttpClient` до wave-core через `IHttpClientFactory`, з
       таймаутом і `AddStandardResilienceHandler`
-- [ ] CORS для Angular dev-сервера (`http://localhost:4200`)
-- [ ] перевірити: `dotnet run`, `/health` відповідає
+- [x] CORS для Angular dev-сервера (`http://localhost:4200`)
+- [x] перевірити: `dotnet run`, `/health` відповідає
 
 ---
 
 ## T0.6 — FastAPI-обгортка
 
-- [ ] `api.py`: `/health`, `/jobs/{id}`
-- [ ] `uvicorn wave_core.api:app --port 8100 --reload`
-- [ ] перевірити ланцюжок: Wave.Api викликає `/health` wave-core
+- [x] `api.py`: `/health`, `/jobs/{id}`
+- [x] `uvicorn wave_core.api:app --port 8100 --reload`
+- [x] перевірити ланцюжок: Wave.Api викликає `/health` wave-core
       і віддає його статус у своєму `/health`
 
 Це найкорисніша перевірка M0 — вона доводить, що обидві половини
@@ -183,9 +183,9 @@ wave = "wave_core.cli:app"
 
 ## T0.7 — README запуску
 
-- [ ] як підняти БД, як поставити Python-залежності, як запустити
+- [x] як підняти БД, як поставити Python-залежності, як запустити
       обидва сервіси, які змінні середовища потрібні
-- [ ] окремо: як поставити ffmpeg і rubberband-cli на Windows
+- [x] окремо: як поставити ffmpeg і rubberband-cli на Windows
 
 ---
 

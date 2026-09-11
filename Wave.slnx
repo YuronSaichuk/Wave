@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Wave.Api/Wave.Api.csproj" />
+    <Project Path="src/Wave.Domain/Wave.Domain.csproj" />
+    <Project Path="src/Wave.Lighting/Wave.Lighting.csproj" />
+  </Folder>
+</Solution>
