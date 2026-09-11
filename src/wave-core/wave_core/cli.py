@@ -1,6 +1,8 @@
+from pathlib import Path
 import sys
 import typer
 from rich.console import Console
+from rich.progress import BarColumn, Progress, SpinnerColumn, TaskProgressColumn, TextColumn, TimeElapsedColumn
 from rich.table import Table
 
 if sys.platform == "win32":
@@ -13,6 +15,7 @@ if sys.platform == "win32":
         pass
 
 import wave_core
+from wave_core.analysis.scanner import scan_directory
 from wave_core.config import settings
 from wave_core.storage.db import check_db
 from wave_core.storage.migrations import run_migrations
@@ -68,6 +71,66 @@ def db_check():
     except Exception as e:
         console.print(f"[red]Database check failed:[/red] {e}")
         raise typer.Exit(code=1)
+
+
+@app.command("scan")
+def scan(
+    path: Path | None = typer.Argument(
+        None,
+        help="Directory to scan for audio files (defaults to WAVE_LIBRARY).",
+    ),
+):
+    """Scan directory recursively for audio files and upsert them into the database."""
+    target_dir = path if path is not None else settings.library
+    if not target_dir.exists() or not target_dir.is_dir():
+        console.print(f"[red]Error:[/red] Directory does not exist: {target_dir}")
+        raise typer.Exit(code=1)
+
+    console.print(f"[cyan]Scanning audio files at:[/cyan] {target_dir.resolve()}")
+
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(),
+        TaskProgressColumn(),
+        TimeElapsedColumn(),
+        console=console,
+    ) as progress:
+        task = progress.add_task("[green]Scanning tracks...", total=None)
+
+        def on_progress(file_path: Path, current: int, total: int):
+            progress.update(
+                task,
+                total=total,
+                completed=current,
+                description=f"[green]Processing ({current}/{total}):[/green] {file_path.name}",
+            )
+
+        summary = scan_directory(target_dir, progress_callback=on_progress)
+
+    table = Table(title="Scan Results")
+    table.add_column("Metric", style="cyan")
+    table.add_column("Count", style="green", justify="right")
+
+    table.add_row("Total Files Found", str(summary.total_found))
+    table.add_row("New Tracks Inserted", str(summary.inserted))
+    table.add_row("Hash Changed (Pending Re-analysis)", str(summary.hash_changed))
+    table.add_row("Metadata Updated", str(summary.metadata_updated))
+    table.add_row("Unchanged", str(summary.unchanged))
+    table.add_row(
+        "Errors",
+        str(len(summary.errors)),
+        style="red" if summary.errors else "green",
+    )
+
+    console.print(table)
+
+    if summary.errors:
+        console.print("[yellow]Warnings/Errors encountered during scan:[/yellow]")
+        for err_path, err_msg in summary.errors[:10]:
+            console.print(f"  [red]×[/red] {err_path}: {err_msg}")
+        if len(summary.errors) > 10:
+            console.print(f"  ...and {len(summary.errors) - 10} more errors.")
 
 
 if __name__ == "__main__":
