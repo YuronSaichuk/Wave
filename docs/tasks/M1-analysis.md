@@ -29,13 +29,13 @@
 
 ## T1.2 — Пайплайн фіч, крок 1: спектральні
 
-- [ ] `analysis/spectral.py`
-- [ ] завантаження: `librosa.load(path, sr=22050, mono=True)`
-- [ ] STFT `n_fft=2048, hop_length=512`
-- [ ] centroid, rolloff(0.85), bandwidth, flatness, contrast, ZCR
-- [ ] MFCC 20 коефіцієнтів
-- [ ] повертати dataclass `SpectralFeatures` з покадровими масивами
-- [ ] тест: синусоїда 440 Гц → centroid ≈ 440; білий шум → flatness → 1
+- [x] `analysis/spectral.py`
+- [x] завантаження: `librosa.load(path, sr=22050, mono=True)`
+- [x] STFT `n_fft=2048, hop_length=512`
+- [x] centroid, rolloff(0.85), bandwidth, flatness, contrast, ZCR
+- [x] MFCC 20 коефіцієнтів
+- [x] повертати dataclass `SpectralFeatures` з покадровими масивами
+- [x] тест: синусоїда 440 Гц → centroid ≈ 440; білий шум → flatness → 1
 
 **Не забудь:** `mfcc[0]` викидається з вектора схожості (це гучність,
 не тембр). Але у `.npz` зберігай усі 20 — раптом знадобиться.
