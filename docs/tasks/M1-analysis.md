@@ -13,15 +13,15 @@
 
 ## T1.1 — Скан бібліотеки
 
-- [ ] рекурсивний обхід папки, розширення: `.mp3 .flac .wav .m4a .ogg`
-- [ ] sha256 файлу — **тільки перші й останні 1 МБ + розмір**, а не
+- [x] рекурсивний обхід папки, розширення: `.mp3 .flac .wav .m4a .ogg`
+- [x] sha256 файлу — **тільки перші й останні 1 МБ + розмір**, а не
       весь файл. На 1000 треків повний хеш — це хвилини I/O без користі
-- [ ] теги через `mutagen`: title, artist, album, duration
-- [ ] якщо тегів немає — розпарсити з імені файлу
+- [x] теги через `mutagen`: title, artist, album, duration
+- [x] якщо тегів немає — розпарсити з імені файлу
       (`Artist - Title.mp3`), не падати
-- [ ] upsert у `tracks` по `file_path`; якщо `file_hash` змінився —
+- [x] upsert у `tracks` по `file_path`; якщо `file_hash` змінився —
       скинути `analyzed_at`
-- [ ] `wave scan <path>` окремою командою від `analyze`
+- [x] `wave scan <path>` окремою командою від `analyze`
 
 **Готово:** `SELECT count(*) FROM tracks` збігається з кількістю файлів.
 
@@ -29,13 +29,13 @@
 
 ## T1.2 — Пайплайн фіч, крок 1: спектральні
 
-- [ ] `analysis/spectral.py`
-- [ ] завантаження: `librosa.load(path, sr=22050, mono=True)`
-- [ ] STFT `n_fft=2048, hop_length=512`
-- [ ] centroid, rolloff(0.85), bandwidth, flatness, contrast, ZCR
-- [ ] MFCC 20 коефіцієнтів
-- [ ] повертати dataclass `SpectralFeatures` з покадровими масивами
-- [ ] тест: синусоїда 440 Гц → centroid ≈ 440; білий шум → flatness → 1
+- [x] `analysis/spectral.py`
+- [x] завантаження: `librosa.load(path, sr=22050, mono=True)`
+- [x] STFT `n_fft=2048, hop_length=512`
+- [x] centroid, rolloff(0.85), bandwidth, flatness, contrast, ZCR
+- [x] MFCC 20 коефіцієнтів
+- [x] повертати dataclass `SpectralFeatures` з покадровими масивами
+- [x] тест: синусоїда 440 Гц → centroid ≈ 440; білий шум → flatness → 1
 
 **Не забудь:** `mfcc[0]` викидається з вектора схожості (це гучність,
 не тембр). Але у `.npz` зберігай усі 20 — раптом знадобиться.

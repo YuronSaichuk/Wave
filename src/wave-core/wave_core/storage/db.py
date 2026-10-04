@@ -1,3 +1,4 @@
+import atexit
 import logging
 from contextlib import contextmanager
 from typing import Generator
@@ -11,6 +12,20 @@ from wave_core.config import settings
 logger = logging.getLogger(__name__)
 
 _pool: ConnectionPool | None = None
+
+
+def close_pool() -> None:
+    """Close the connection pool."""
+    global _pool
+    if _pool is not None:
+        try:
+            _pool.close(timeout=1.0)
+        except Exception:
+            pass
+        _pool = None
+
+
+atexit.register(close_pool)
 
 
 def configure_connection(conn: psycopg.Connection) -> None:
@@ -32,12 +47,6 @@ def get_pool() -> ConnectionPool:
     return _pool
 
 
-def close_pool() -> None:
-    """Close the connection pool."""
-    global _pool
-    if _pool is not None:
-        _pool.close()
-        _pool = None
 
 
 @contextmanager
