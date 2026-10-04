@@ -115,10 +115,10 @@
 
 ## T1.7 — `wave inspect` (роби рано!)
 
-- [ ] `wave inspect <track_id> [--plot out.png]`
-- [ ] у консоль: BPM + confidence, ключ + Camelot + confidence, LUFS,
+- [x] `wave inspect <track_id> [--plot out.png]`
+- [x] у консоль: BPM + confidence, ключ + Camelot + confidence, LUFS,
       тривалість, список сегментів
-- [ ] у PNG (matplotlib, 3 підграфіки):
+- [x] у PNG (matplotlib, 3 підграфіки):
   1. спектрограма (dB) з вертикальними лініями бітів і жирнішими —
      downbeat'ів
   2. 8 смуг енергії у часі

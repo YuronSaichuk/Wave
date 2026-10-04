@@ -1,8 +1,17 @@
-from pathlib import Path
 import sys
+from pathlib import Path
+from uuid import UUID
+
 import typer
 from rich.console import Console
-from rich.progress import BarColumn, Progress, SpinnerColumn, TaskProgressColumn, TextColumn, TimeElapsedColumn
+from rich.progress import (
+    BarColumn,
+    Progress,
+    SpinnerColumn,
+    TaskProgressColumn,
+    TextColumn,
+    TimeElapsedColumn,
+)
 from rich.table import Table
 
 if sys.platform == "win32":
@@ -15,10 +24,16 @@ if sys.platform == "win32":
         pass
 
 import wave_core
+from wave_core.analysis.inspect import (
+    inspect_audio,
+    plot_inspect_figure,
+    print_inspect_console,
+)
 from wave_core.analysis.scanner import scan_directory
 from wave_core.config import settings
-from wave_core.storage.db import check_db
+from wave_core.storage.db import check_db, get_connection
 from wave_core.storage.migrations import run_migrations
+from wave_core.storage.tracks import get_track_by_id
 
 app = typer.Typer(
     name="wave",
@@ -131,6 +146,69 @@ def scan(
             console.print(f"  [red]×[/red] {err_path}: {err_msg}")
         if len(summary.errors) > 10:
             console.print(f"  ...and {len(summary.errors) - 10} more errors.")
+
+
+@app.command("inspect")
+def inspect(
+    target: str = typer.Argument(
+        ...,
+        help="Track ID (UUID from database) or direct path to an audio file.",
+    ),
+    plot: Path | None = typer.Option(
+        None,
+        "--plot",
+        "-p",
+        help="Optional path to output visualization PNG (e.g. --plot inspect.png).",
+    ),
+):
+    """Inspect audio track: tempo, key/Camelot, LUFS, and sections. Optionally plot to PNG."""
+    file_path: Path | None = None
+
+    # 1. Direct path check
+    direct_path = Path(target)
+    if direct_path.exists() and direct_path.is_file():
+        file_path = direct_path
+    else:
+        # 2. Try parsing as UUID and lookup in database
+        try:
+            track_uuid = UUID(target)
+        except ValueError:
+            track_uuid = None
+
+        if track_uuid is not None:
+            try:
+                with get_connection() as conn:
+                    record = get_track_by_id(conn, track_uuid)
+                    if record is not None:
+                        file_path = Path(record.file_path)
+                    else:
+                        console.print(f"[red]Error:[/red] Track ID '{track_uuid}' not found in database.")
+                        raise typer.Exit(code=1)
+            except typer.Exit:
+                raise
+            except Exception as e:
+                console.print(f"[red]Database error while looking up track:[/red] {e}")
+                raise typer.Exit(code=1)
+
+    if file_path is None or not file_path.exists() or not file_path.is_file():
+        console.print(f"[red]Error:[/red] '{target}' is not an existing audio file or a known database track ID.")
+        raise typer.Exit(code=1)
+
+    try:
+        with console.status(f"[cyan]Analyzing [bold]{file_path.name}[/bold]...[/cyan]", spinner="dots"):
+            result = inspect_audio(file_path)
+
+        print_inspect_console(result, console=console)
+
+        if plot is not None:
+            with console.status(f"[cyan]Rendering visualization to [bold]{plot}[/bold]...[/cyan]"):
+                plot_inspect_figure(result, out_path=plot)
+            console.print(f"[green]✓ Plot successfully saved to:[/green] [bold]{plot.resolve()}[/bold]")
+    except typer.Exit:
+        raise
+    except Exception as e:
+        console.print(f"[red]Analysis failed:[/red] {e}")
+        raise typer.Exit(code=1)
 
 
 if __name__ == "__main__":

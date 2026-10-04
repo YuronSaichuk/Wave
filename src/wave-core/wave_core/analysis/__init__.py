@@ -23,6 +23,12 @@ from wave_core.analysis.harmony import (
     extract_harmony_features_from_file,
     pitch_class_to_name,
 )
+from wave_core.analysis.inspect import (
+    InspectResult,
+    inspect_audio,
+    plot_inspect_figure,
+    print_inspect_console,
+)
 from wave_core.analysis.loudness import (
     MIN_LUFS,
     LoudnessFeatures,
@@ -88,6 +94,7 @@ __all__ = [
     "WINDOW",
     "BandEnergies",
     "HarmonyFeatures",
+    "InspectResult",
     "LoudnessFeatures",
     "RhythmFeatures",
     "Section",
@@ -112,8 +119,11 @@ __all__ = [
     "extract_rhythm_features_from_file",
     "extract_spectral_features",
     "extract_spectral_features_from_file",
+    "inspect_audio",
     "load_audio",
     "measure_loudness",
     "measure_loudness_from_file",
     "pitch_class_to_name",
+    "plot_inspect_figure",
+    "print_inspect_console",
 ]
