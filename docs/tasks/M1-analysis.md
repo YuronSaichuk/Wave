@@ -86,16 +86,16 @@
 
 ## T1.5 — Крок 4: тональність
 
-- [ ] `analysis/harmony.py`
-- [ ] `chroma_cqt`
-- [ ] профілі Krumhansl-Schmuckler (12 значень для мажору, 12 для мінору —
+- [x] `analysis/harmony.py`
+- [x] `chroma_cqt`
+- [x] профілі Krumhansl-Schmuckler (12 значень для мажору, 12 для мінору —
       є в будь-якій статті про key detection, вбий у гугл
       "Krumhansl-Schmuckler key profiles")
-- [ ] усереднити хрому, нормалізувати, скоррелювати з 24 зсувами
-- [ ] `key_pitch`, `key_mode`, `key_confidence` = (перше − друге) / перше
-- [ ] мапінг у Camelot (таблиця в
+- [x] усереднити хрому, нормалізувати, скоррелювати з 24 зсувами
+- [x] `key_pitch`, `key_mode`, `key_confidence` = (перше − друге) / перше
+- [x] мапінг у Camelot (таблиця в
       [03-similarity-and-mixing.md](../03-similarity-and-mixing.md#тональність--camelot-wheel))
-- [ ] тест: згенерувати акорд C-E-G → має дати C major → `8B`
+- [x] тест: згенерувати акорд C-E-G → має дати C major → `8B`
 
 ---
 
