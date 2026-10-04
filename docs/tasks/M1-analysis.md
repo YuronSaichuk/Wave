@@ -44,12 +44,12 @@
 
 ## T1.3 — Крок 2: смуги енергії
 
-- [ ] `analysis/bands.py`
-- [ ] 8 смуг із [02-audio-analysis.md](../02-audio-analysis.md#крок-3--енергія-по-смугах-для-схожості-і-для-світла)
-- [ ] мапінг бінів STFT у смуги: `librosa.fft_frequencies` → маски
-- [ ] сума енергії в смузі → дБ → згладжування
-- [ ] результат `[8 × N]`, float32
-- [ ] тест: синус 50 Гц дає максимум у смузі `sub`
+- [x] `analysis/bands.py`
+- [x] 8 смуг із [02-audio-analysis.md](../02-audio-analysis.md#крок-3--енергія-по-смугах-для-схожості-і-для-світла)
+- [x] мапінг бінів STFT у смуги: `librosa.fft_frequencies` → маски
+- [x] сума енергії в смузі → дБ → згладжування
+- [x] результат `[8 × N]`, float32
+- [x] тест: синус 50 Гц дає максимум у смузі `sub`
 
 Ця матриця потім піде прямо в cue engine — не полінуйся зробити її
 акуратно.
@@ -58,17 +58,17 @@
 
 ## T1.4 — Крок 3: темп і біти
 
-- [ ] `analysis/rhythm.py`
-- [ ] `onset_strength` → `beat_track(units='time')`
-- [ ] корекція октави: `<70` → ×2, `>180` → ÷2
-- [ ] `bpm_confidence` через автокореляцію onset-огинаючої:
+- [x] `analysis/rhythm.py`
+- [x] `onset_strength` → `beat_track(units='time')`
+- [x] корекція октави: `<70` → ×2, `>180` → ÷2
+- [x] `bpm_confidence` через автокореляцію onset-огинаючої:
       відношення головного піка до другого
-- [ ] downbeat: серед бітів знайти той, що дає максимум енергії
+- [x] downbeat: серед бітів знайти той, що дає максимум енергії
       sub-смуги при групуванні по 4. Простий і робочий підхід:
       для кожного зсуву `k in 0..3` порахувати суму `band_energy[sub]`
       на бітах `k, k+4, k+8, ...`, взяти максимум
-- [ ] `first_beat_sec`, масив `beats`, масив `downbeats`
-- [ ] тест: метроном 120 BPM → `bpm == 120 ± 0.5`
+- [x] `first_beat_sec`, масив `beats`, масив `downbeats`
+- [x] тест: метроном 120 BPM → `bpm == 120 ± 0.5`
 
 **Це місце, де ти витратиш найбільше часу.** Не воюй за ідеальність:
 для 80% електронної музики librosa дає правильний BPM з першого разу,
@@ -86,29 +86,29 @@
 
 ## T1.5 — Крок 4: тональність
 
-- [ ] `analysis/harmony.py`
-- [ ] `chroma_cqt`
-- [ ] профілі Krumhansl-Schmuckler (12 значень для мажору, 12 для мінору —
+- [x] `analysis/harmony.py`
+- [x] `chroma_cqt`
+- [x] профілі Krumhansl-Schmuckler (12 значень для мажору, 12 для мінору —
       є в будь-якій статті про key detection, вбий у гугл
       "Krumhansl-Schmuckler key profiles")
-- [ ] усереднити хрому, нормалізувати, скоррелювати з 24 зсувами
-- [ ] `key_pitch`, `key_mode`, `key_confidence` = (перше − друге) / перше
-- [ ] мапінг у Camelot (таблиця в
+- [x] усереднити хрому, нормалізувати, скоррелювати з 24 зсувами
+- [x] `key_pitch`, `key_mode`, `key_confidence` = (перше − друге) / перше
+- [x] мапінг у Camelot (таблиця в
       [03-similarity-and-mixing.md](../03-similarity-and-mixing.md#тональність--camelot-wheel))
-- [ ] тест: згенерувати акорд C-E-G → має дати C major → `8B`
+- [x] тест: згенерувати акорд C-E-G → має дати C major → `8B`
 
 ---
 
 ## T1.6 — Крок 5: гучність і структура
 
-- [ ] `pyloudnorm`: `lufs_integrated`, `lufs_range`, `true_peak_db`
-- [ ] `analysis/structure.py`:
-  - [ ] даунсемпл MFCC+chroma до ~5 Гц **перед** побудовою матриці
-  - [ ] `recurrence_matrix` + `agglomerative(k=8)`
-  - [ ] середня енергія по сегменту
-  - [ ] евристичні лейбли: intro / build / drop / breakdown / outro
-  - [ ] у `sections` jsonb: `[{start, end, label, energy}]`
-- [ ] тест: трек із явним drop — сегмент із максимальною енергією
+- [x] `pyloudnorm`: `lufs_integrated`, `lufs_range`, `true_peak_db`
+- [x] `analysis/structure.py`:
+  - [x] даунсемпл MFCC+chroma до ~5 Гц **перед** побудовою матриці
+  - [x] `recurrence_matrix` + `agglomerative(k=8)`
+  - [x] середня енергія по сегменту
+  - [x] евристичні лейбли: intro / build / drop / breakdown / outro
+  - [x] у `sections` jsonb: `[{start, end, label, energy}]`
+- [x] тест: трек із явним drop — сегмент із максимальною енергією
       має бути в середині, не на початку
 
 ---
