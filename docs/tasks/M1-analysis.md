@@ -132,12 +132,12 @@
 
 ## T1.8 — Збереження
 
-- [ ] `.npz` у `data/cache/<track_id>.npz` за схемою з
+- [x] `.npz` у `data/cache/<track_id>.npz` за схемою з
       [02-audio-analysis.md](../02-audio-analysis.md#у-кеші-datacachetrack_idnpz)
-- [ ] `float32` скрізь, `savez_compressed`
-- [ ] запис агрегатів у `track_features`
-- [ ] `analyzed_at`, `analysis_version = 1`
-- [ ] перевірка: розмір `.npz` для 4-хвилинного треку ≤ 2 МБ
+- [x] `float32` скрізь, `savez_compressed`
+- [x] запис агрегатів у `track_features`
+- [x] `analyzed_at`, `analysis_version = 1`
+- [x] перевірка: розмір `.npz` для 4-хвилинного треку ≤ 2 МБ
 
 ---
 

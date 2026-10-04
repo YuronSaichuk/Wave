@@ -1,4 +1,4 @@
-"""Audio analysis: spectral features, rhythm, harmony, loudness, segmentation."""
+"""Audio analysis: spectral features, rhythm, harmony, loudness, segmentation, and pipeline."""
 
 from wave_core.analysis.bands import (
     BAND_NAMES,
@@ -35,6 +35,13 @@ from wave_core.analysis.loudness import (
     compute_true_peak_db,
     measure_loudness,
     measure_loudness_from_file,
+)
+from wave_core.analysis.pipeline import (
+    FullAnalysisResult,
+    analyze_and_store_track,
+    analyze_track_audio,
+    analyze_track_file,
+    store_track_analysis,
 )
 from wave_core.analysis.rhythm import (
     DEFAULT_MAX_BPM,
@@ -79,6 +86,7 @@ __all__ = [
     "DEFAULT_MIN_BPM",
     "DEFAULT_SMOOTH_WINDOW",
     "DEFAULT_TOP_DB",
+    "FullAnalysisResult",
     "HOP_LENGTH",
     "KRUMHANSL_MAJOR",
     "KRUMHANSL_MINOR",
@@ -100,8 +108,11 @@ __all__ = [
     "Section",
     "SpectralFeatures",
     "StructureFeatures",
+    "analyze_and_store_track",
     "analyze_structure",
     "analyze_structure_from_file",
+    "analyze_track_audio",
+    "analyze_track_file",
     "assign_section_labels",
     "compute_bpm_confidence",
     "compute_true_peak_db",
@@ -126,4 +137,5 @@ __all__ = [
     "pitch_class_to_name",
     "plot_inspect_figure",
     "print_inspect_console",
+    "store_track_analysis",
 ]
