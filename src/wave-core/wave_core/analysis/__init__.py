@@ -12,6 +12,16 @@ from wave_core.analysis.bands import (
     extract_band_energy_from_audio,
     extract_band_energy_from_file,
 )
+from wave_core.analysis.rhythm import (
+    DEFAULT_MAX_BPM,
+    DEFAULT_MIN_BPM,
+    RhythmFeatures,
+    compute_bpm_confidence,
+    correct_tempo_octave,
+    detect_downbeats,
+    extract_rhythm_features,
+    extract_rhythm_features_from_file,
+)
 from wave_core.analysis.spectral import (
     HOP_LENGTH,
     N_FFT,
@@ -28,6 +38,8 @@ from wave_core.analysis.spectral import (
 __all__ = [
     "BANDS_HZ",
     "BAND_NAMES",
+    "DEFAULT_MAX_BPM",
+    "DEFAULT_MIN_BPM",
     "DEFAULT_SMOOTH_WINDOW",
     "DEFAULT_TOP_DB",
     "HOP_LENGTH",
@@ -38,11 +50,17 @@ __all__ = [
     "SAMPLE_RATE",
     "WINDOW",
     "BandEnergies",
+    "RhythmFeatures",
     "SpectralFeatures",
+    "compute_bpm_confidence",
+    "correct_tempo_octave",
     "create_band_filterbank",
+    "detect_downbeats",
     "extract_band_energy",
     "extract_band_energy_from_audio",
     "extract_band_energy_from_file",
+    "extract_rhythm_features",
+    "extract_rhythm_features_from_file",
     "extract_spectral_features",
     "extract_spectral_features_from_file",
     "load_audio",
