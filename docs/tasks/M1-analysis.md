@@ -101,14 +101,14 @@
 
 ## T1.6 — Крок 5: гучність і структура
 
-- [ ] `pyloudnorm`: `lufs_integrated`, `lufs_range`, `true_peak_db`
-- [ ] `analysis/structure.py`:
-  - [ ] даунсемпл MFCC+chroma до ~5 Гц **перед** побудовою матриці
-  - [ ] `recurrence_matrix` + `agglomerative(k=8)`
-  - [ ] середня енергія по сегменту
-  - [ ] евристичні лейбли: intro / build / drop / breakdown / outro
-  - [ ] у `sections` jsonb: `[{start, end, label, energy}]`
-- [ ] тест: трек із явним drop — сегмент із максимальною енергією
+- [x] `pyloudnorm`: `lufs_integrated`, `lufs_range`, `true_peak_db`
+- [x] `analysis/structure.py`:
+  - [x] даунсемпл MFCC+chroma до ~5 Гц **перед** побудовою матриці
+  - [x] `recurrence_matrix` + `agglomerative(k=8)`
+  - [x] середня енергія по сегменту
+  - [x] евристичні лейбли: intro / build / drop / breakdown / outro
+  - [x] у `sections` jsonb: `[{start, end, label, energy}]`
+- [x] тест: трек із явним drop — сегмент із максимальною енергією
       має бути в середині, не на початку
 
 ---
