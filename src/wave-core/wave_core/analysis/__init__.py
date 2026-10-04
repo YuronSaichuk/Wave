@@ -1,4 +1,4 @@
-"""Audio analysis: spectral features, rhythm, harmony, loudness, segmentation, and pipeline."""
+"""Audio analysis: spectral features, rhythm, harmony, loudness, segmentation, pipeline, and normalization."""
 
 from wave_core.analysis.bands import (
     BAND_NAMES,
@@ -35,6 +35,18 @@ from wave_core.analysis.loudness import (
     compute_true_peak_db,
     measure_loudness,
     measure_loudness_from_file,
+)
+from wave_core.analysis.normalization import (
+    FeatureStats,
+    NormalizationResult,
+    check_normalization_needed,
+    compute_feature_stats,
+    load_feature_stats,
+    normalize_band_vector,
+    normalize_chroma_vector,
+    normalize_library_features,
+    normalize_timbre_vector,
+    save_feature_stats,
 )
 from wave_core.analysis.pipeline import (
     FullAnalysisResult,
@@ -86,7 +98,6 @@ __all__ = [
     "DEFAULT_MIN_BPM",
     "DEFAULT_SMOOTH_WINDOW",
     "DEFAULT_TOP_DB",
-    "FullAnalysisResult",
     "HOP_LENGTH",
     "KRUMHANSL_MAJOR",
     "KRUMHANSL_MINOR",
@@ -101,9 +112,12 @@ __all__ = [
     "TARGET_STRUCTURE_FPS",
     "WINDOW",
     "BandEnergies",
+    "FeatureStats",
+    "FullAnalysisResult",
     "HarmonyFeatures",
     "InspectResult",
     "LoudnessFeatures",
+    "NormalizationResult",
     "RhythmFeatures",
     "Section",
     "SpectralFeatures",
@@ -114,7 +128,9 @@ __all__ = [
     "analyze_track_audio",
     "analyze_track_file",
     "assign_section_labels",
+    "check_normalization_needed",
     "compute_bpm_confidence",
+    "compute_feature_stats",
     "compute_true_peak_db",
     "correct_tempo_octave",
     "create_band_filterbank",
@@ -132,10 +148,16 @@ __all__ = [
     "extract_spectral_features_from_file",
     "inspect_audio",
     "load_audio",
+    "load_feature_stats",
     "measure_loudness",
     "measure_loudness_from_file",
+    "normalize_band_vector",
+    "normalize_chroma_vector",
+    "normalize_library_features",
+    "normalize_timbre_vector",
     "pitch_class_to_name",
     "plot_inspect_figure",
     "print_inspect_console",
+    "save_feature_stats",
     "store_track_analysis",
 ]

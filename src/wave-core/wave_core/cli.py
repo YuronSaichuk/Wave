@@ -4,6 +4,7 @@ from uuid import UUID
 
 import typer
 from rich.console import Console
+from rich.panel import Panel
 from rich.progress import (
     BarColumn,
     Progress,
@@ -23,12 +24,15 @@ if sys.platform == "win32":
     except Exception:
         pass
 
+import numpy as np
+
 import wave_core
 from wave_core.analysis.inspect import (
     inspect_audio,
     plot_inspect_figure,
     print_inspect_console,
 )
+from wave_core.analysis.normalization import normalize_library_features
 from wave_core.analysis.scanner import scan_directory
 from wave_core.config import settings
 from wave_core.storage.db import check_db, get_connection
@@ -208,6 +212,68 @@ def inspect(
         raise
     except Exception as e:
         console.print(f"[red]Analysis failed:[/red] {e}")
+        raise typer.Exit(code=1)
+
+
+@app.command("normalize-features")
+def normalize_features(
+    force: bool = typer.Option(
+        False,
+        "--force",
+        "-f",
+        help="Force re-normalization even if library growth is under 20%.",
+    ),
+    threshold: float = typer.Option(
+        0.20,
+        "--threshold",
+        "-t",
+        help="Library growth threshold ratio (default: 0.20 = 20%).",
+    ),
+) -> None:
+    """Compute library-wide mean/std stats and normalize timbre_vec and band_vec across all tracks."""
+    console.print(Panel("[bold cyan]Wave Feature Normalizer[/bold cyan]", border_style="cyan"))
+
+    try:
+        with console.status("[cyan]Computing library feature statistics and normalizing vectors...[/cyan]"):
+            result = normalize_library_features(force=force, growth_threshold=threshold)
+
+        if not result.applied:
+            console.print(f"[yellow]Normalization skipped:[/yellow] {result.reason}")
+            if result.track_count > 0:
+                console.print(
+                    f"  Current tracks: [bold]{result.track_count}[/bold], "
+                    f"Previous: [bold]{result.previous_track_count}[/bold] "
+                    f"({result.growth_ratio * 100:.1f}% growth). Use [bold]--force[/bold] to override."
+                )
+            return
+
+        table = Table(title="Library Normalization Summary", border_style="blue", show_header=True)
+        table.add_column("Metric", style="cyan")
+        table.add_column("Value", style="green")
+
+        table.add_row("Tracks Normalized", str(result.tracks_updated))
+        table.add_row("Previous Track Count", str(result.previous_track_count))
+        table.add_row("Growth Ratio", f"{result.growth_ratio * 100:.1f}%")
+
+        if result.stats is not None:
+            t_mean_avg = float(np.mean(result.stats.timbre_mean))
+            t_std_avg = float(np.mean(result.stats.timbre_std))
+            b_mean_avg = float(np.mean(result.stats.band_mean))
+            b_std_avg = float(np.mean(result.stats.band_std))
+
+            table.add_row("Timbre Mean (avg)", f"{t_mean_avg:.4f}")
+            table.add_row("Timbre Std (avg)", f"{t_std_avg:.4f}")
+            table.add_row("Band Energy Mean (avg)", f"{b_mean_avg:.4f} dB")
+            table.add_row("Band Energy Std (avg)", f"{b_std_avg:.4f} dB")
+
+        console.print(table)
+        console.print(
+            f"[bold green]✓ Successfully normalized {result.tracks_updated} tracks in database.[/bold green]"
+        )
+    except typer.Exit:
+        raise
+    except Exception as e:
+        console.print(f"[red]Normalization failed:[/red] {e}")
         raise typer.Exit(code=1)
 
 
