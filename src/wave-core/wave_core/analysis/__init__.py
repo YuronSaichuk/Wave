@@ -12,6 +12,11 @@ from wave_core.analysis.bands import (
     extract_band_energy_from_audio,
     extract_band_energy_from_file,
 )
+from wave_core.analysis.batch import (
+    BatchItemResult,
+    BatchSummary,
+    analyze_batch,
+)
 from wave_core.analysis.harmony import (
     CAMELOT_MAP,
     KRUMHANSL_MAJOR,
@@ -112,6 +117,8 @@ __all__ = [
     "TARGET_STRUCTURE_FPS",
     "WINDOW",
     "BandEnergies",
+    "BatchItemResult",
+    "BatchSummary",
     "FeatureStats",
     "FullAnalysisResult",
     "HarmonyFeatures",
@@ -123,6 +130,7 @@ __all__ = [
     "SpectralFeatures",
     "StructureFeatures",
     "analyze_and_store_track",
+    "analyze_batch",
     "analyze_structure",
     "analyze_structure_from_file",
     "analyze_track_audio",

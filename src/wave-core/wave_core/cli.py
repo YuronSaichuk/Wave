@@ -27,6 +27,7 @@ if sys.platform == "win32":
 import numpy as np
 
 import wave_core
+from wave_core.analysis.batch import analyze_batch
 from wave_core.analysis.inspect import (
     inspect_audio,
     plot_inspect_figure,
@@ -150,6 +151,96 @@ def scan(
             console.print(f"  [red]×[/red] {err_path}: {err_msg}")
         if len(summary.errors) > 10:
             console.print(f"  ...and {len(summary.errors) - 10} more errors.")
+
+
+@app.command("analyze")
+def analyze(
+    path: Path | None = typer.Argument(
+        None,
+        help="Directory or audio file to analyze (defaults to WAVE_LIBRARY).",
+    ),
+    force: bool = typer.Option(
+        False,
+        "--force",
+        "-f",
+        help="Force re-analysis even if tracks are already analyzed and up to date.",
+    ),
+    workers: int | None = typer.Option(
+        None,
+        "--workers",
+        "-w",
+        help="Number of worker processes for DSP parallelism (defaults to cpu_count() - 1).",
+    ),
+) -> None:
+    """Analyze audio files: extract beats, Camelot key, LUFS, bands, sections, and update vectors."""
+    target_path = path or settings.library
+    console.print(Panel(f"[bold cyan]Wave Audio Analysis Engine[/bold cyan]\nTarget: [bold]{target_path}[/bold]", border_style="cyan"))
+
+    if not target_path.exists():
+        console.print(f"[red]Error:[/red] Target path '{target_path}' does not exist.")
+        raise typer.Exit(code=1)
+
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(),
+        TaskProgressColumn(),
+        TimeElapsedColumn(),
+        console=console,
+    ) as progress:
+        task_id = progress.add_task("[cyan]Scanning and preparing audio files...", total=None)
+
+        def _update_progress(completed: int, total: int, current_file: str) -> None:
+            progress.update(
+                task_id,
+                total=total,
+                completed=completed,
+                description=f"[cyan]Analyzing ({completed}/{total}):[/cyan] [bold]{current_file}[/bold]",
+            )
+
+        try:
+            summary = analyze_batch(
+                target_path=target_path,
+                force=force,
+                workers=workers,
+                on_progress=_update_progress,
+            )
+        except typer.Exit:
+            raise
+        except Exception as e:
+            console.print(f"[red]Batch analysis failed:[/red] {e}")
+            raise typer.Exit(code=1)
+
+    table = Table(title="Batch Analysis Summary", border_style="blue", show_header=True)
+    table.add_column("Metric", style="cyan")
+    table.add_column("Count / Value", style="green", justify="right")
+
+    table.add_row("Total Files Found", str(summary.total_found))
+    table.add_row("Successfully Analyzed", str(summary.analyzed_count))
+    table.add_row("Skipped (Up to Date)", str(summary.skipped_count))
+    table.add_row(
+        "Failed",
+        str(summary.failed_count),
+        style="red" if summary.failed_count > 0 else "green",
+    )
+    table.add_row("Total Elapsed Time", f"{summary.elapsed_sec:.2f} s")
+    if summary.analyzed_count > 0:
+        table.add_row("Average Speed", f"{summary.average_speed_sec:.2f} s / track")
+    table.add_row("Auto-Normalized", "Yes" if summary.normalized else "No")
+
+    console.print(table)
+
+    if summary.failed_items:
+        console.print("\n[yellow]Encountered errors on the following files:[/yellow]")
+        for err_path, err_msg in summary.failed_items[:10]:
+            console.print(f"  [red]×[/red] {err_path}: {err_msg}")
+        if len(summary.failed_items) > 10:
+            console.print(f"  ...and {len(summary.failed_items) - 10} more.")
+
+    if summary.analyzed_count > 0:
+        console.print(f"\n[bold green]✓ Completed analysis of {summary.analyzed_count} tracks.[/bold green]")
+    elif summary.skipped_count > 0:
+        console.print("\n[cyan]All tracks were already up to date. Use --force to re-analyze.[/cyan]")
 
 
 @app.command("inspect")
