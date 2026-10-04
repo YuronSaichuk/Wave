@@ -5,8 +5,6 @@ from uuid import UUID
 
 import numpy as np
 
-from wave_core.analysis.spectral import HOP_LENGTH, SAMPLE_RATE
-from wave_core.analysis.structure import TARGET_STRUCTURE_FPS, downsample_features
 from wave_core.config import settings
 
 # Canonical array keys saved into each track's .npz cache
@@ -22,6 +20,21 @@ CACHE_KEYS: tuple[str, ...] = (
 
 # Maximum acceptable size for a 4-minute compressed feature cache
 MAX_CACHE_SIZE_BYTES_4MIN: int = 2 * 1024 * 1024  # 2 MB
+
+DEFAULT_SAMPLE_RATE: int = 22050
+DEFAULT_HOP_LENGTH: int = 512
+DEFAULT_TARGET_FPS: float = 5.0
+
+
+def _downsample_features(features: np.ndarray, factor: int = 8) -> np.ndarray:
+    """Downsample feature matrix across time via block averaging."""
+    if factor <= 1 or features.shape[1] <= factor:
+        return features
+    n_features, n_frames = features.shape
+    n_blocks = n_frames // factor
+    trimmed = features[:, : n_blocks * factor]
+    reshaped = trimmed.reshape(n_features, n_blocks, factor)
+    return np.mean(reshaped, axis=2).astype(np.float32)
 
 
 def get_cache_path(track_id: UUID | str, cache_dir: Path | str | None = None) -> Path:
@@ -40,8 +53,8 @@ def save_feature_cache(
     chroma: np.ndarray,
     mfcc: np.ndarray,
     downsample_features_if_needed: bool = True,
-    sr: int = SAMPLE_RATE,
-    hop_length: int = HOP_LENGTH,
+    sr: int = DEFAULT_SAMPLE_RATE,
+    hop_length: int = DEFAULT_HOP_LENGTH,
 ) -> Path:
     """Save frame-level audio features into a compressed .npz archive using float32 arrays.
 
@@ -106,11 +119,11 @@ def save_feature_cache(
     # Downsample chroma and mfcc to ~5 Hz if full frame rate provided
     if downsample_features_if_needed:
         fps = sr / hop_length
-        ds_factor = max(1, round(fps / TARGET_STRUCTURE_FPS))
+        ds_factor = max(1, round(fps / DEFAULT_TARGET_FPS))
         if chroma_arr.shape[1] == n_frames and ds_factor > 1:
-            chroma_arr = downsample_features(chroma_arr, factor=ds_factor)
+            chroma_arr = _downsample_features(chroma_arr, factor=ds_factor)
         if mfcc_arr.shape[1] == n_frames and ds_factor > 1:
-            mfcc_arr = downsample_features(mfcc_arr, factor=ds_factor)
+            mfcc_arr = _downsample_features(mfcc_arr, factor=ds_factor)
 
     # Save compressed archive
     np.savez_compressed(

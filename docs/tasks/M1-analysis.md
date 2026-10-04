@@ -176,10 +176,10 @@
 
 ## T1.11 — FastAPI endpoint
 
-- [ ] `POST /analyze {file_path}` → створити джобу, `202 {job_id}`
-- [ ] фоновий воркер (`BackgroundTasks` вистачить на цьому етапі)
-- [ ] оновлення `progress` у таблиці `jobs`
-- [ ] `GET /jobs/{id}`
+- [x] `POST /analyze {file_path}` → створити джобу, `202 {job_id}`
+- [x] фоновий воркер (`BackgroundTasks` вистачить на цьому етапі)
+- [x] оновлення `progress` у таблиці `jobs`
+- [x] `GET /jobs/{id}`
 
 ---
 

@@ -51,6 +51,7 @@ def analyze_track_audio(
     sr: int = SAMPLE_RATE,
     hop_length: int = HOP_LENGTH,
     n_fft: int = N_FFT,
+    progress_callback: object | None = None,
 ) -> FullAnalysisResult:
     """Run complete deterministic DSP analysis on mono audio array.
 
@@ -59,6 +60,7 @@ def analyze_track_audio(
         sr: Sample rate in Hz.
         hop_length: Hop length in samples.
         n_fft: FFT window size in samples.
+        progress_callback: Optional callable(progress: float, message: str) -> None.
 
     Returns:
         FullAnalysisResult containing all feature models and search vectors.
@@ -70,15 +72,21 @@ def analyze_track_audio(
     duration_sec = float(len(y) / sr)
 
     # 1. Spectral features (STFT, Centroid, Rolloff, Bandwidth, Flatness, ZCR, MFCC)
+    if callable(progress_callback):
+        progress_callback(0.25, "spectral features")
     spectral = extract_spectral_features(y, sr=sr, n_fft=n_fft, hop_length=hop_length)
 
     # 2. 8-Band energy (smoothed dB)
+    if callable(progress_callback):
+        progress_callback(0.45, "band energy and rhythm")
     band_energy = extract_band_energy(spectral.stft, sr=sr, n_fft=n_fft)
 
     # 3. Rhythm and beat tracking
     rhythm = extract_rhythm_features(y, sr=sr, hop_length=hop_length, sub_energy=band_energy[0])
 
     # 4. Harmony and Camelot key
+    if callable(progress_callback):
+        progress_callback(0.65, "harmony and structure")
     harmony = extract_harmony_features(y, sr=sr, hop_length=hop_length)
 
     # 5. Loudness & Structure
@@ -86,6 +94,8 @@ def analyze_track_audio(
     structure = analyze_structure(y=y, sr=sr, hop_length=hop_length, loudness_info=loudness)
 
     # 6. RMS envelope over STFT frames
+    if callable(progress_callback):
+        progress_callback(0.85, "aggregating vectors")
     rms = librosa.feature.rms(y=y, hop_length=hop_length).squeeze(0).astype(np.float32)
 
     # 7. Search vectors:
@@ -123,14 +133,23 @@ def analyze_track_file(
     sr: int = SAMPLE_RATE,
     hop_length: int = HOP_LENGTH,
     n_fft: int = N_FFT,
+    progress_callback: object | None = None,
 ) -> FullAnalysisResult:
     """Load an audio file and run complete deterministic DSP analysis."""
     path = Path(file_path)
     if not path.exists() or not path.is_file():
         raise FileNotFoundError(f"Audio file not found: {path}")
 
+    if callable(progress_callback):
+        progress_callback(0.15, "loading audio")
     y, loaded_sr = load_audio(path, sr=sr)
-    return analyze_track_audio(y=y, sr=loaded_sr, hop_length=hop_length, n_fft=n_fft)
+    return analyze_track_audio(
+        y=y,
+        sr=loaded_sr,
+        hop_length=hop_length,
+        n_fft=n_fft,
+        progress_callback=progress_callback,
+    )
 
 
 def store_track_analysis(
@@ -208,6 +227,7 @@ def analyze_and_store_track(
     conn: psycopg.Connection | None = None,
     cache_dir: Path | str | None = None,
     force: bool = False,
+    progress_callback: object | None = None,
 ) -> tuple[Path, TrackFeaturesRecord]:
     """Analyze an audio track and persist both .npz cache and database records.
 
@@ -217,6 +237,7 @@ def analyze_and_store_track(
         conn: Optional active database connection. If None, acquires one from pool.
         cache_dir: Optional custom cache directory.
         force: If False and track was already analyzed with valid cache, returns existing.
+        progress_callback: Optional callable(progress: float, message: str) -> None.
 
     Returns:
         Tuple of (cache_path, TrackFeaturesRecord).
@@ -227,6 +248,8 @@ def analyze_and_store_track(
 
     def _execute(active_conn: psycopg.Connection) -> tuple[Path, TrackFeaturesRecord]:
         nonlocal track_id
+        if callable(progress_callback):
+            progress_callback(0.05, "verifying metadata")
         if track_id is None:
             existing = get_track_by_path(active_conn, str(path))
             if existing is not None:
@@ -241,11 +264,18 @@ def analyze_and_store_track(
 
             existing_features = get_track_features(active_conn, track_id)
             if existing_features is not None:
+                if callable(progress_callback):
+                    progress_callback(1.0, "already analyzed")
                 return cache_path, existing_features
 
         # Run analysis and store results
-        analysis = analyze_track_file(path)
-        return store_track_analysis(active_conn, track_id, analysis, cache_dir)
+        analysis = analyze_track_file(path, progress_callback=progress_callback)
+        if callable(progress_callback):
+            progress_callback(0.9, "saving features and cache")
+        result = store_track_analysis(active_conn, track_id, analysis, cache_dir)
+        if callable(progress_callback):
+            progress_callback(1.0, "complete")
+        return result
 
     if conn is not None:
         return _execute(conn)
